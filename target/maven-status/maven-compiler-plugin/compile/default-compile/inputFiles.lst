@@ -1,0 +1,11 @@
+/home/mwamba/qr-answer/src/main/java/com/example/service/EmailService.java
+/home/mwamba/qr-answer/src/main/java/com/example/service/WebhookProcessingService.java
+/home/mwamba/qr-answer/src/main/java/com/example/model/User.java
+/home/mwamba/qr-answer/src/main/java/com/example/service/PdfService.java
+/home/mwamba/qr-answer/src/main/java/com/example/service/QRCodeService.java
+/home/mwamba/qr-answer/src/main/java/com/example/repository/UserRepository.java
+/home/mwamba/qr-answer/src/main/java/com/example/controller/AttendanceController.java
+/home/mwamba/qr-answer/src/main/java/com/example/config/SwaggerConfig.java
+/home/mwamba/qr-answer/src/main/java/com/example/controller/WebhookController.java
+/home/mwamba/qr-answer/src/main/java/com/example/dto/PaystackWebhookRequest.java
+/home/mwamba/qr-answer/src/main/java/com/example/PaystackWebhookQrApplication.java

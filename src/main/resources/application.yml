@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://db:5432/paystackdb
+    username: postgres
+    password: fearlesscrew
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  mail:
+    host: smtp-relay.brevo.com
+    port: 587
+    username: 90097f001@smtp-brevo.com
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+server:
+  port: 8080
+
+# Brevo API config
+brevo:
+  api:
+    key:
+  sender:
+    email: thefearlessmovement1@gmail.com
+    name: Qr-system
+
+# Swagger
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html 

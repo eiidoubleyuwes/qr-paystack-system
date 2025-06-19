@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        .stats { margin-bottom: 2em; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f0f0f0; }
+        .qr-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
+        .qr-modal-content { background: #fff; padding: 2em; border-radius: 8px; text-align: center; }
+        .close-btn { margin-top: 1em; }
+    </style>
+</head>
+<body>
+<h2>Admin Dashboard</h2>
+<div class="stats">
+    <strong>Total QR Codes Generated:</strong> <span id="total">...</span><br>
+    <strong>Total QR Codes Scanned:</strong> <span id="scanned">...</span>
+</div>
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Reference</th>
+        <th>Attended</th>
+        <th>QR Code</th>
+    </tr>
+    </thead>
+    <tbody id="ticketTable"></tbody>
+</table>
+<div class="qr-modal" id="qrModal">
+    <div class="qr-modal-content">
+        <img id="qrImg" src="" alt="QR Code" style="max-width:300px;max-height:300px;"/>
+        <br>
+        <button class="close-btn" onclick="closeModal()">Close</button>
+    </div>
+</div>
+<script>
+function fetchStats() {
+    fetch('/admin/api/stats').then(r => r.json()).then(stats => {
+        document.getElementById('total').innerText = stats.total;
+        document.getElementById('scanned').innerText = stats.scanned;
+    });
+}
+function fetchTickets() {
+    fetch('/admin/api/tickets').then(r => r.json()).then(tickets => {
+        let rows = tickets.map(t => `<tr>
+            <td>${t.id}</td>
+            <td>${t.firstName || ''} ${t.lastName || ''}</td>
+            <td>${t.email || ''}</td>
+            <td>${t.paymentReference || ''}</td>
+            <td>${t.attended ? 'Yes' : 'No'}</td>
+            <td><button onclick="showQr(${t.id})">View QR</button></td>
+        </tr>`).join('');
+        document.getElementById('ticketTable').innerHTML = rows;
+    });
+}
+function showQr(id) {
+    document.getElementById('qrImg').src = '/admin/api/qr/' + id + '?_=' + Date.now();
+    document.getElementById('qrModal').style.display = 'flex';
+}
+function closeModal() {
+    document.getElementById('qrModal').style.display = 'none';
+    document.getElementById('qrImg').src = '';
+}
+window.onclick = function(event) {
+    let modal = document.getElementById('qrModal');
+    if (event.target === modal) closeModal();
+};
+fetchStats();
+fetchTickets();
+</script>
+</body>
+</html> 
