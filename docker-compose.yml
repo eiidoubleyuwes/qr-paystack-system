@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: paystackdb
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Aju@2024!
+      POSTGRES_PASSWORD: fearlesscrew
     ports:
       - "5437:5432"
     volumes:
@@ -21,6 +21,6 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/paystackdb
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: Aju@2024!
+      SPRING_DATASOURCE_PASSWORD: fearlesscrew
 volumes:
   pgdata: 
