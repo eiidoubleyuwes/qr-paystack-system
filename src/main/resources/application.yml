@@ -35,4 +35,4 @@ springdoc:
     path: /swagger-ui.html 
 
 qr:
-  redirect-base-url: "https://thefearlessmovement.co.ke"
+  redirect-base-url: "https://ticketing.thefearlessmovement.co.ke"

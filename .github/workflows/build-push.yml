@@ -1,0 +1,30 @@
+name: Build and Push Spring Boot Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v3
+
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+    - name: Build and Push Docker Image using Maven
+      run: |
+        IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/qr-backend
+        mvn spring-boot:build-image -DskipTests \
+            -Dspring-boot.build-image.imageName=$IMAGE_NAME:${{ github.sha }}
+        docker push $IMAGE_NAME:${{ github.sha }}

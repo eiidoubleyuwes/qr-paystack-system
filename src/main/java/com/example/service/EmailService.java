@@ -33,7 +33,7 @@ public class EmailService {
             helper.setSubject("🎉 Your Fearless Camp Ticket is Here!");
             String html = """
                 <html><body>
-                <h2 style='color:#0066cc;'>Hey " + firstName + "! 👋</h2>
+                <h2 style='color:#0066cc;'>Hey! 👋</h2>
                 <p style='font-size:1.1em;'>
                     <b>Welcome to The Fearless Movement!</b><br><br>
                     The Fearless Movement began with a vision to empower and inspire young people to live boldly in their faith and purpose. What started as a small gathering of passionate individuals has grown into a thriving community committed to mentorship, faith-based events, and creative expression.<br><br>
