@@ -4,14 +4,38 @@
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 2em; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 2em; background: #f7fafc; }
         .stats { margin-bottom: 2em; }
+        .search-bar-container { margin-bottom: 1.5em; text-align: right; }
+        #searchBar {
+            padding: 0.7em 1em;
+            border: 1px solid #0066cc;
+            border-radius: 24px;
+            width: 320px;
+            font-size: 1em;
+            outline: none;
+            box-shadow: 0 2px 8px rgba(0,102,204,0.07);
+            transition: border 0.2s;
+        }
+        #searchBar:focus {
+            border: 2px solid #009933;
+        }
+        #ticketTableContainer {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(0,102,204,0.08);
+            overflow: hidden;
+        }
         table { border-collapse: collapse; width: 100%; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background: #f0f0f0; }
+        th, td { border: none; padding: 14px 10px; text-align: left; }
+        th { background: #0066cc; color: #fff; font-weight: 600; }
+        tr:nth-child(even) { background: #f0f8ff; }
+        tr:nth-child(odd) { background: #e6f7ee; }
+        td { color: #222; font-size: 1em; }
         .qr-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; }
-        .qr-modal-content { background: #fff; padding: 2em; border-radius: 8px; text-align: center; }
-        .close-btn { margin-top: 1em; }
+        .qr-modal-content { background: #fff; padding: 2em; border-radius: 12px; text-align: center; box-shadow: 0 8px 32px rgba(0,102,204,0.15); }
+        .close-btn { margin-top: 1em; background: #009933; color: #fff; border: none; border-radius: 8px; padding: 0.7em 1.5em; font-size: 1em; cursor: pointer; transition: background 0.2s; }
+        .close-btn:hover { background: #007a29; }
     </style>
 </head>
 <body>
@@ -20,7 +44,10 @@
     <strong>Total QR Codes Generated:</strong> <span id="total">...</span><br>
     <strong>Total QR Codes Scanned:</strong> <span id="scanned">...</span>
 </div>
-<table>
+<div class="search-bar-container">
+    <input type="text" id="searchBar" placeholder="Search by name, email, or reference..." />
+</div>
+<table id="ticketTableContainer">
     <thead>
     <tr>
         <th>ID</th>
@@ -41,6 +68,7 @@
     </div>
 </div>
 <script>
+let allTickets = [];
 function fetchStats() {
     fetch('/admin/api/stats').then(r => r.json()).then(stats => {
         document.getElementById('total').innerText = stats.total;
@@ -49,17 +77,34 @@ function fetchStats() {
 }
 function fetchTickets() {
     fetch('/admin/api/tickets').then(r => r.json()).then(tickets => {
-        let rows = tickets.map(t => `<tr>
-            <td>${t.id}</td>
-            <td>${t.firstName || ''} ${t.lastName || ''}</td>
-            <td>${t.email || ''}</td>
-            <td>${t.paymentReference || ''}</td>
-            <td>${t.attended ? 'Yes' : 'No'}</td>
-            <td><button onclick="showQr(${t.id})">View QR</button></td>
-        </tr>`).join('');
-        document.getElementById('ticketTable').innerHTML = rows;
+        // Sort by createdAt descending (most recent first)
+        tickets.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        allTickets = tickets;
+        renderTickets(tickets);
     });
 }
+function renderTickets(tickets) {
+        let rows = tickets.map(t => `<tr>
+            <td>${t.id}</td>
+        <td>${(t.firstName || '') + ' ' + (t.lastName || '')}</td>
+            <td>${t.email || ''}</td>
+            <td>${t.paymentReference || ''}</td>
+        <td style="color:${t.attended ? '#009933' : '#d32f2f'};font-weight:bold;">${t.attended ? 'Yes' : 'No'}</td>
+        <td><button onclick="showQr(${t.id})" style="background:#0066cc;color:#fff;border:none;border-radius:6px;padding:0.5em 1em;cursor:pointer;">View QR</button></td>
+        </tr>`).join('');
+        document.getElementById('ticketTable').innerHTML = rows;
+}
+document.getElementById('searchBar').addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    if (!q) { renderTickets(allTickets); return; }
+    const filtered = allTickets.filter(t =>
+        (t.firstName && t.firstName.toLowerCase().includes(q)) ||
+        (t.lastName && t.lastName.toLowerCase().includes(q)) ||
+        (t.email && t.email.toLowerCase().includes(q)) ||
+        (t.paymentReference && t.paymentReference.toLowerCase().includes(q))
+    );
+    renderTickets(filtered);
+});
 function showQr(id) {
     document.getElementById('qrImg').src = '/admin/api/qr/' + id + '?_=' + Date.now();
     document.getElementById('qrModal').style.display = 'flex';
