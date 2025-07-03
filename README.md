@@ -1,38 +1,58 @@
 # Paystack Webhook QR App
 
-This Spring Boot application acts as a webhook client for Paystack. It generates a QR code and PDF ticket after successful payment, sends it via email, and allows attendance marking via QR scan or ticket ID. All data is stored in PostgreSQL.
+This Spring Boot application acts as a webhook client for Paystack. It generates a QR code and PDF ticket after successful payment, sends it via email (SMTP only), and allows attendance marking via QR scan or ticket ID. All data is stored in SQLite.
 
 ## Features
 - Paystack webhook endpoint for payment notifications
 - Extracts user data (name, email, phone, etc.)
 - Generates QR code and PDF ticket
-- Sends PDF ticket via email
+- Sends PDF ticket via email (SMTP only)
 - Attendance marking via QR scan or ticket ID
 - Swagger UI for API documentation
-- Dockerized (Spring Boot + PostgreSQL)
+- Dockerized (Spring Boot + SQLite)
 
 ## Prerequisites
-- Docker & Docker Compose
-- Java 17+ (for local dev)
-- Maven (for local dev)
+- Java 17+
+- Maven
+- (Optional) Docker & Docker Compose
 
-## Environment Variables
+## How to Run
+
+### 1. Local (Recommended for Development)
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repo-url>
+   cd qr-answer
+   ```
+2. **Configure SMTP and QR base URL:**
+   - Edit `src/main/resources/application.yml` with your SMTP credentials and desired QR redirect base URL.
+3. **Build the app:**
+   ```bash
+   mvn clean package
+   ```
+4. **Run the app:**
+   ```bash
+   java -jar target/*.jar
+   ```
+5. **Access the app:**
+   - Main app: [http://localhost:8080](http://localhost:8080)
+   - Swagger UI: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
+   - Admin Dashboard: [http://localhost:8080/admin/dashboard](http://localhost:8080/admin/dashboard)
+
+### 2. Docker (Optional)
+
+1. **Build and run with Docker Compose:**
+   ```bash
+   docker-compose up --build
+   ```
+2. **Access as above.**
+
+## Environment Variables / Configuration
 Configure `src/main/resources/application.yml` for:
-- PostgreSQL connection
-- Mail server credentials
-
-## Build & Run (Docker)
-```bash
-docker-compose up --build
-```
-App: http://localhost:8080  
-Swagger: http://localhost:8080/swagger-ui.html
-
-## Build & Run (Local)
-```bash
-mvn clean package
-java -jar target/*.jar
-```
+- SQLite database (default: file-based, no credentials needed)
+- Mail server credentials (SMTP)
+- QR redirect base URL
 
 ## Admin Dashboard
 
@@ -62,11 +82,12 @@ The app includes a built-in admin dashboard for visualizing and managing QR code
 - `GET /admin/api/qr/{id}` — Admin QR code image
 
 ## Database
-- Default: `paystackdb` (user: `postgres`, pass: `postgres`)
+- Default: SQLite file `paystackdb.sqlite` (no username/password required)
 
 ## Customization
-- Update mail settings in `application.yml`
+- Update mail (SMTP) settings in `application.yml`
 - Set Paystack webhook URL to `/api/webhook/paystack`
+- Change QR code redirect base URL in `application.yml` (`qr.redirect-base-url`)
 
 ## High Concurrency: Handling 100 Users at a Time
 

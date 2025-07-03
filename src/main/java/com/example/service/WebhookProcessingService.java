@@ -6,6 +6,7 @@ import com.example.repository.UserRepository;
 import com.google.zxing.WriterException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -16,6 +17,8 @@ public class WebhookProcessingService {
     private final QRCodeService qrCodeService;
     private final PdfService pdfService;
     private final EmailService emailService;
+    @Value("${qr.redirect-base-url}")
+    private String qrRedirectBaseUrl;
 
     public WebhookProcessingService(UserRepository userRepository, QRCodeService qrCodeService, PdfService pdfService, EmailService emailService) {
         this.userRepository = userRepository;
@@ -36,23 +39,22 @@ public class WebhookProcessingService {
         String firstName = customer.getFirst_name();
         String lastName = customer.getLast_name();
         String phone = customer.getPhone();
-        String qrData = reference;
+        String qrData = qrRedirectBaseUrl + "/attend?code=" + reference;
         try {
-            User user = User.builder()
-                    .firstName(firstName)
-                    .lastName(lastName)
-                    .email(email)
-                    .phone(phone)
-                    .paymentReference(reference)
-                    .qrCodeData(qrData)
-                    .attended(false)
-                    .createdAt(LocalDateTime.now())
-                    .build();
+            User user = new User();
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setEmail(email);
+            user.setPhone(phone);
+            user.setPaymentReference(reference);
+            user.setQrCodeData(qrData);
+            user.setAttended(false);
+            user.setCreatedAt(java.time.LocalDateTime.now().toString());
             userRepository.save(user);
             byte[] qrBytes = qrCodeService.generateQRCode(qrData, 300, 300);
             byte[] pdfBytes = pdfService.generateTicketPdf(user, qrBytes);
             try {
-                emailService.sendTicketEmail(email, pdfBytes, "ticket.pdf");
+                emailService.sendTicketEmail(email, pdfBytes, "ticket.pdf", firstName);
             } catch (RuntimeException e) {
                 System.err.println("Email sending failed: " + e.getMessage());
                 e.printStackTrace();

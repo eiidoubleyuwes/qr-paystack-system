@@ -10,56 +10,51 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import java.util.*;
 import java.util.Base64;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import jakarta.mail.internet.MimeMessage;
 
 @Service
 public class EmailService {
-    @Value("${brevo.api.key}")
-    private String brevoApiKey;
+    private final JavaMailSender mailSender;
+    private final String senderEmail;
 
-    @Value("${brevo.sender.email}")
-    private String senderEmail;
+    public EmailService(JavaMailSender mailSender, @Value("${spring.mail.username}") String senderEmail) {
+        this.mailSender = mailSender;
+        this.senderEmail = senderEmail;
+    }
 
-    @Value("${brevo.sender.name}")
-    private String senderName;
-
-    public void sendTicketEmail(String to, byte[] pdfBytes, String filename) {
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "https://api.brevo.com/v3/smtp/email";
-
-        String pdfBase64 = Base64.getEncoder().encodeToString(pdfBytes);
-
-        Map<String, Object> body = new HashMap<>();
-        Map<String, String> sender = new HashMap<>();
-        sender.put("name", senderName);
-        sender.put("email", senderEmail);
-        body.put("sender", sender);
-
-        List<Map<String, String>> toList = new ArrayList<>();
-        Map<String, String> toMap = new HashMap<>();
-        toMap.put("email", to);
-        toMap.put("name", to);
-        toList.add(toMap);
-        body.put("to", toList);
-
-        body.put("subject", "Your Ticket");
-        body.put("htmlContent", "<html><body><p>Please find your ticket attached as a PDF with QR code.</p></body></html>");
-
-        List<Map<String, String>> attachments = new ArrayList<>();
-        Map<String, String> attachment = new HashMap<>();
-        attachment.put("name", filename);
-        attachment.put("content", pdfBase64);
-        attachments.add(attachment);
-        body.put("attachment", attachments);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("accept", "application/json");
-        headers.set("api-key", brevoApiKey);
-
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
-        ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Failed to send email via Brevo: " + response.getBody());
+    public void sendTicketEmail(String to, byte[] pdfBytes, String filename, String firstName) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(senderEmail);
+            helper.setTo(to);
+            helper.setSubject("🎉 Your Fearless Camp Ticket is Here!");
+            String html = """
+                <html><body>
+                <h2 style='color:#0066cc;'>Hey " + firstName + "! 👋</h2>
+                <p style='font-size:1.1em;'>
+                    <b>Welcome to The Fearless Movement!</b><br><br>
+                    The Fearless Movement began with a vision to empower and inspire young people to live boldly in their faith and purpose. What started as a small gathering of passionate individuals has grown into a thriving community committed to mentorship, faith-based events, and creative expression.<br><br>
+                    <b>You are now part of a generation that breaks barriers, spreads hope, and leads with faith and purpose.</b><br><br>
+                    <span style='color:#009933;font-weight:bold;'>Your adventure at Fearless Camp awaits!</span> Attached is your official ticket.<br>
+                    <ul>
+                        <li>Bring this ticket with you (on your phone or printed).</li>
+                        <li>Scan the QR code at the entrance to check in and start your journey!</li>
+                    </ul>
+                    <br>
+                    Get ready for games, worship, new friends, and unforgettable moments. Through conferences, workshops, worship nights, and social impact initiatives, The Fearless Movement provides you with the tools and support to navigate life's challenges while staying rooted in your Christian faith.<br><br>
+                    <i>See you at Fearless — where faith is fun, you belong, and your God-given potential is celebrated!</i>
+                </p>
+                <p style='font-size:0.95em;color:#888;'>If you have any questions, reply to this email. God bless!</p>
+                </body></html>
+            """;
+            helper.setText(html, true);
+            helper.addAttachment(filename, new ByteArrayResource(pdfBytes));
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send email via SMTP: " + e.getMessage(), e);
         }
     }
 } 

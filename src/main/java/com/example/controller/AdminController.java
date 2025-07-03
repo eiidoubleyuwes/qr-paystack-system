@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -40,8 +41,8 @@ public class AdminController {
 
     @GetMapping("/api/tickets")
     @ResponseBody
-    public List<User> tickets() {
-        return userRepository.findAll();
+    public List<UserDto> tickets() {
+        return userRepository.findAll().stream().filter(u -> u != null).map(UserDto::fromUser).collect(Collectors.toList());
     }
 
     @GetMapping("/api/qr/{id}")
@@ -55,6 +56,31 @@ public class AdminController {
                     .body(new ByteArrayResource(qr));
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
+        }
+    }
+
+    public static class UserDto {
+        public Long id;
+        public String firstName;
+        public String lastName;
+        public String email;
+        public String phone;
+        public String paymentReference;
+        public String qrCodeData;
+        public boolean attended;
+        public String createdAt;
+        public static UserDto fromUser(com.example.model.User u) {
+            UserDto d = new UserDto();
+            d.id = u.getId();
+            d.firstName = u.getFirstName();
+            d.lastName = u.getLastName();
+            d.email = u.getEmail();
+            d.phone = u.getPhone();
+            d.paymentReference = u.getPaymentReference();
+            d.qrCodeData = u.getQrCodeData();
+            d.attended = u.isAttended();
+            d.createdAt = u.getCreatedAt();
+            return d;
         }
     }
 } 
